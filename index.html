@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Visual Context Forge · Vanilla Total</title>
+    <title>Wireframe Builder · Diseño visual para IA</title>
     <style>
         * {
+            user-select: none; /* evita selección durante arrastre */
             box-sizing: border-box;
-            user-select: none; /* evita seleccionar texto durante arrastre */
         }
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #eef2f5;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #e2e8f0;
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -20,633 +20,556 @@
             overflow: hidden;
         }
         /* Barra superior */
-        .toolbar {
-            background: white;
-            padding: 12px 20px;
+        .top-bar {
+            background: #1e293b;
+            color: white;
+            padding: 8px 16px;
             display: flex;
             gap: 12px;
             align-items: center;
             flex-wrap: wrap;
-            border-bottom: 1px solid #ccc;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             z-index: 20;
         }
         .logo {
             font-weight: bold;
-            font-size: 1.3rem;
-            margin-right: 20px;
-        }
-        select, button, input {
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid #aaa;
-            background: #f9f9f9;
-            font-size: 0.85rem;
+            font-size: 1.2rem;
         }
         button {
-            cursor: pointer;
-            background: #e6e9f0;
-            transition: 0.1s;
-        }
-        button:active {
-            transform: scale(0.97);
-        }
-        .btn-primary {
-            background: #1e3a8a;
-            color: white;
+            background: #334155;
             border: none;
-        }
-        .btn-secondary {
-            background: #4b5563;
             color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
         }
-        /* Layout de dos columnas */
-        .main-container {
+        button.primary {
+            background: #3b82f6;
+        }
+        button.warning {
+            background: #f59e0b;
+        }
+        /* Layout principal */
+        .main-layout {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
-        .canvas-area {
-            flex: 3;
-            position: relative;
-            background: #faf9f8;
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-            background-size: 25px 25px;
-            overflow: auto;
-            border-right: 1px solid #ccc;
-        }
-        #canvas {
-            position: relative;
-            width: 2000px;
-            height: 1500px;
-            min-width: 100%;
-            min-height: 100%;
-        }
-        .node {
-            position: absolute;
-            width: 240px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.1);
-            cursor: grab;
-            border: 1px solid #ddd;
-            transition: box-shadow 0.1s;
-        }
-        .node:active {
-            cursor: grabbing;
-        }
-        .node.dragging {
-            opacity: 0.8;
-            cursor: grabbing;
-        }
-        .node-header {
-            background: #f3f4f6;
-            padding: 8px 12px;
-            border-top-left-radius: 16px;
-            border-top-right-radius: 16px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .node-body {
-            padding: 10px 12px;
-            font-size: 0.8rem;
-            max-height: 130px;
-            overflow-y: auto;
-            background: white;
-            line-height: 1.4;
-        }
-        .node-footer {
-            background: #fafafa;
-            padding: 6px 12px;
-            border-top: 1px solid #eaeaea;
-            font-size: 0.7rem;
-            display: flex;
-            justify-content: space-between;
-            border-bottom-left-radius: 16px;
-            border-bottom-right-radius: 16px;
-        }
-        .badge {
-            background: #e2e8f0;
-            padding: 2px 8px;
-            border-radius: 30px;
-            font-size: 0.65rem;
-        }
-        .right-panel {
-            flex: 1;
-            background: white;
-            padding: 16px;
+        /* Paleta de componentes */
+        .palette {
+            width: 160px;
+            background: #f8fafc;
+            border-right: 1px solid #cbd5e1;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 8px;
             overflow-y: auto;
-            border-left: 1px solid #ccc;
         }
-        .section-title {
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-        #imagePreview img {
-            max-width: 100%;
-            max-height: 120px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            margin-top: 6px;
-        }
-        #promptOutput {
-            background: #1e1e2f;
-            color: #f0f0f0;
-            padding: 10px;
+        .palette-item {
+            background: white;
+            border: 1px solid #cbd5e1;
             border-radius: 12px;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.75rem;
+            cursor: grab;
+            transition: 0.1s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .palette-item:active {
+            cursor: grabbing;
+        }
+        /* Lienzo */
+        .canvas-container {
+            flex: 1;
+            background: #fef9e8;
+            background-image: radial-gradient(#d4d4d8 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow: auto;
+            position: relative;
+        }
+        #wireframe {
+            position: relative;
+            width: 1200px;
+            height: 800px;
+            background: white;
+            box-shadow: 0 0 0 2px #aaa inset;
+            margin: 20px auto;
+            transform-origin: 0 0;
+            transition: box-shadow 0.1s;
+        }
+        /* Estilos de los elementos */
+        .wf-element {
+            position: absolute;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            cursor: move;
+            transition: border 0.05s;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 12px;
+            font-family: monospace;
+            background-clip: padding-box;
+        }
+        .wf-element.selected {
+            border: 2px solid #f97316;
+            box-shadow: 0 0 0 3px rgba(249,115,22,0.3);
+        }
+        .element-header {
+            background: #eef2ff;
+            padding: 4px 8px;
+            font-weight: bold;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            cursor: move;
+        }
+        .element-content {
+            padding: 8px;
+            flex: 1;
+            font-size: 11px;
+            word-break: break-word;
+            background: white;
+        }
+        .resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background: #f97316;
+            cursor: nw-resize;
+            border-radius: 0 0 4px 0;
+        }
+        /* Panel derecho */
+        .inspector {
+            width: 260px;
+            background: white;
+            border-left: 1px solid #cbd5e1;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+        }
+        .inspector h3 {
+            font-size: 0.85rem;
+            margin: 0 0 6px 0;
+        }
+        .inspector input, .inspector textarea {
+            width: 100%;
+            padding: 5px;
+            font-size: 0.75rem;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+        }
+        .prop-group {
+            margin-bottom: 12px;
+        }
+        #promptArea {
+            background: #1e1e2f;
+            color: #ddd;
             font-family: monospace;
             font-size: 0.7rem;
-            white-space: pre-wrap;
+            padding: 8px;
+            border-radius: 8px;
             max-height: 300px;
             overflow: auto;
+            white-space: pre-wrap;
         }
-        .btn-small {
-            padding: 2px 8px;
+        button.small {
             font-size: 0.7rem;
-        }
-        .status-msg {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: #2c3e50;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            z-index: 99;
+            padding: 3px 8px;
         }
     </style>
 </head>
 <body>
-<div class="toolbar">
-    <div class="logo">🧠 Visual Context Forge · Vanilla</div>
-    <select id="projectSelect"></select>
-    <button id="newProjectBtn">➕ Nuevo proyecto</button>
-    <div style="flex:1"></div>
-    <button id="generatePromptBtn" class="btn-primary">🔄 Generar prompt</button>
-    <button id="copyPromptBtn" class="btn-secondary">📋 Copiar</button>
+<div class="top-bar">
+    <div class="logo">🎨 Wireframe Builder · Diseño visual → IA</div>
+    <button id="clearBtn" class="warning">🗑️ Limpiar todo</button>
+    <button id="generatePromptBtn" class="primary">🤖 Generar prompt para IA</button>
+    <button id="copyBtn">📋 Copiar prompt</button>
+    <span style="flex:1"></span>
+    <span style="font-size:0.7rem">Arrastra elementos de la izquierda · Redimensiona desde esquina · Doble click edita texto</span>
 </div>
-
-<div class="main-container">
-    <div class="canvas-area">
-        <div id="canvas"></div>
+<div class="main-layout">
+    <div class="palette" id="palette">
+        <div class="palette-item" data-type="box" data-label="Caja">📦 Caja</div>
+        <div class="palette-item" data-type="button" data-label="Botón">🔘 Botón</div>
+        <div class="palette-item" data-type="chat-area" data-label="Área chat">💬 Área chat</div>
+        <div class="palette-item" data-type="input" data-label="Campo texto">✏️ Input</div>
+        <div class="palette-item" data-type="image" data-label="Imagen">🖼️ Imagen</div>
+        <div class="palette-item" data-type="notification" data-label="Notificación">🔔 Notificación</div>
+        <div class="palette-item" data-type="card" data-label="Card">🃏 Card</div>
+        <div class="palette-item" data-type="header" data-label="Header">📌 Header</div>
+        <div class="palette-item" data-type="footer" data-label="Footer">📄 Footer</div>
     </div>
-    <div class="right-panel">
+    <div class="canvas-container">
+        <div id="wireframe"></div>
+    </div>
+    <div class="inspector">
         <div>
-            <div class="section-title">➕ Añadir nodo</div>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <button data-type="layout_block" class="add-node-btn">📐 Layout</button>
-                <button data-type="note" class="add-node-btn">📝 Nota</button>
-                <button data-type="prompt" class="add-node-btn">🎯 Prompt</button>
-                <button data-type="skill" class="add-node-btn">⚙️ Skill</button>
-                <button data-type="module" class="add-node-btn">🧩 Módulo</button>
+            <h3>📐 Propiedades del elemento</h3>
+            <div id="noSelectionMsg" style="font-size:0.7rem; color:gray">Ningún elemento seleccionado</div>
+            <div id="elementProps" style="display:none;">
+                <div class="prop-group">
+                    <label>Tipo:</label>
+                    <input type="text" id="propType" readonly>
+                </div>
+                <div class="prop-group">
+                    <label>Texto / contenido:</label>
+                    <textarea id="propText" rows="2"></textarea>
+                </div>
+                <div class="prop-group">
+                    <label>Color de fondo (opcional):</label>
+                    <input type="color" id="propBgColor">
+                </div>
+                <button id="updatePropsBtn" class="small">Aplicar cambios</button>
             </div>
         </div>
         <div>
-            <div class="section-title">🖼️ Imagen de referencia</div>
-            <input type="file" id="imageUpload" accept="image/*">
-            <div id="imagePreview"></div>
-        </div>
-        <div>
-            <div class="section-title">📄 Prompt generado</div>
-            <pre id="promptOutput">Esperando acción...</pre>
+            <h3>📋 Prompt generado (lista para IA)</h3>
+            <pre id="promptArea">Aún no generado...</pre>
         </div>
     </div>
 </div>
-<div id="statusMsg" class="status-msg">✅ Listo</div>
 
 <script>
-    // ---------- 100% Vanilla JS + IndexedDB nativo ----------
-    (function(){
-        // Variables globales
-        let currentProjectId = null;
-        let nodes = [];           // { id, projectId, type, x, y, title, content }
-        let dragEnabled = false;
-        let draggingNode = null;
-        let dragStartX = 0, dragStartY = 0;
-        let nodeStartLeft = 0, nodeStartTop = 0;
-        let currentImageBase64 = null;
+    // ---------- Estado ----------
+    let elements = [];        // cada elemento: { id, type, x, y, w, h, text, bgColor? }
+    let selectedId = null;
+    let dragTarget = null;
+    let resizeTarget = null;
+    let dragOffsetX = 0, dragOffsetY = 0;
+    let startMouseX, startMouseY, startW, startH, startX, startY;
 
-        // Elementos DOM
-        const canvasDiv = document.getElementById('canvas');
-        const projectSelect = document.getElementById('projectSelect');
-        const newProjectBtn = document.getElementById('newProjectBtn');
-        const generateBtn = document.getElementById('generatePromptBtn');
-        const copyBtn = document.getElementById('copyPromptBtn');
-        const imageUpload = document.getElementById('imageUpload');
-        const imagePreviewDiv = document.getElementById('imagePreview');
-        const promptOutput = document.getElementById('promptOutput');
-        const statusSpan = document.getElementById('statusMsg');
+    const wireframe = document.getElementById('wireframe');
+    const paletteItems = document.querySelectorAll('.palette-item');
+    const clearBtn = document.getElementById('clearBtn');
+    const generateBtn = document.getElementById('generatePromptBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const propType = document.getElementById('propType');
+    const propText = document.getElementById('propText');
+    const propBgColor = document.getElementById('propBgColor');
+    const updatePropsBtn = document.getElementById('updatePropsBtn');
+    const elementPropsDiv = document.getElementById('elementProps');
+    const noSelectionMsg = document.getElementById('noSelectionMsg');
+    const promptArea = document.getElementById('promptArea');
 
-        function setStatus(msg, isError=false) {
-            statusSpan.textContent = msg;
-            statusSpan.style.background = isError ? '#b91c1c' : '#2c3e50';
-            setTimeout(() => {
-                if(statusSpan.textContent === msg) statusSpan.textContent = '✅ Listo';
-            }, 2000);
-        }
-
-        // ---------- INDEXEDDB WRAPPER ----------
-        const DB_NAME = 'VisualContextForgeVanillaDB';
-        const DB_VERSION = 1;
-        let db = null;
-
-        function openDB() {
-            return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = (e) => reject(request.error);
-                request.onsuccess = () => {
-                    db = request.result;
-                    resolve(db);
-                };
-                request.onupgradeneeded = (e) => {
-                    const dbInst = e.target.result;
-                    if (!dbInst.objectStoreNames.contains('projects')) {
-                        const projStore = dbInst.createObjectStore('projects', { keyPath: 'id', autoIncrement: true });
-                        projStore.createIndex('name', 'name', { unique: false });
-                    }
-                    if (!dbInst.objectStoreNames.contains('nodes')) {
-                        const nodeStore = dbInst.createObjectStore('nodes', { keyPath: 'id', autoIncrement: true });
-                        nodeStore.createIndex('projectId', 'projectId', { unique: false });
-                    }
-                };
-            });
-        }
-
-        async function getAllProjects() {
-            const tx = db.transaction('projects', 'readonly');
-            const store = tx.objectStore('projects');
-            return new Promise((resolve) => {
-                const request = store.getAll();
-                request.onsuccess = () => resolve(request.result || []);
-                request.onerror = () => resolve([]);
-            });
-        }
-
-        async function addProject(project) {
-            const tx = db.transaction('projects', 'readwrite');
-            const store = tx.objectStore('projects');
-            return new Promise((resolve, reject) => {
-                const req = store.add(project);
-                req.onsuccess = () => resolve(req.result);
-                req.onerror = () => reject(req.error);
-            });
-        }
-
-        async function updateProject(id, data) {
-            const tx = db.transaction('projects', 'readwrite');
-            const store = tx.objectStore('projects');
-            const proj = await new Promise((res) => {
-                const req = store.get(id);
-                req.onsuccess = () => res(req.result);
-            });
-            if (!proj) return;
-            Object.assign(proj, data);
-            store.put(proj);
-        }
-
-        async function getProject(id) {
-            const tx = db.transaction('projects', 'readonly');
-            const store = tx.objectStore('projects');
-            return new Promise((res) => {
-                const req = store.get(id);
-                req.onsuccess = () => res(req.result);
-            });
-        }
-
-        async function getNodesByProject(projectId) {
-            const tx = db.transaction('nodes', 'readonly');
-            const index = tx.objectStore('nodes').index('projectId');
-            return new Promise((resolve) => {
-                const req = index.getAll(projectId);
-                req.onsuccess = () => resolve(req.result || []);
-            });
-        }
-
-        async function saveNode(node) {
-            const tx = db.transaction('nodes', 'readwrite');
-            const store = tx.objectStore('nodes');
-            if (node.id) {
-                store.put(node);
-            } else {
-                store.add(node);
-            }
-            return new Promise((resolve) => {
-                tx.oncomplete = () => resolve();
-            });
-        }
-
-        async function deleteNodeById(id) {
-            const tx = db.transaction('nodes', 'readwrite');
-            const store = tx.objectStore('nodes');
-            store.delete(id);
-        }
-
-        // ---------- Lógica de renderizado ----------
-        function renderCanvas() {
-            canvasDiv.innerHTML = '';
-            for (const node of nodes) {
-                const nodeDiv = document.createElement('div');
-                nodeDiv.className = 'node';
-                nodeDiv.style.left = node.x + 'px';
-                nodeDiv.style.top = node.y + 'px';
-                nodeDiv.setAttribute('data-id', node.id);
-                nodeDiv.innerHTML = `
-                    <div class="node-header">
-                        <span>${getIcon(node.type)} ${escapeHtml(node.title)}</span>
-                        <span class="badge">${node.type.replace('_',' ')}</span>
-                    </div>
-                    <div class="node-body">${escapeHtml(node.content).substring(0, 120)}${node.content.length > 120 ? '…' : ''}</div>
-                    <div class="node-footer">
-                        <button class="edit-node" data-id="${node.id}">✏️ Editar</button>
-                        <button class="delete-node" data-id="${node.id}">🗑️ Eliminar</button>
-                    </div>
-                `;
-                // Eventos de arrastre (nativo)
-                nodeDiv.addEventListener('mousedown', (e) => {
-                    if (e.target.classList.contains('edit-node') || e.target.classList.contains('delete-node')) return;
-                    dragEnabled = true;
-                    draggingNode = nodeDiv;
-                    dragStartX = e.clientX;
-                    dragStartY = e.clientY;
-                    nodeStartLeft = parseInt(nodeDiv.style.left);
-                    nodeStartTop = parseInt(nodeDiv.style.top);
-                    nodeDiv.style.cursor = 'grabbing';
-                    nodeDiv.classList.add('dragging');
-                    e.preventDefault();
-                });
-                canvasDiv.appendChild(nodeDiv);
-            }
-            // Agregar event listeners a los botones después de renderizar
-            document.querySelectorAll('.edit-node').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const id = parseInt(btn.getAttribute('data-id'));
-                    const node = nodes.find(n => n.id === id);
-                    if (node) editNodeModal(node);
-                });
-            });
-            document.querySelectorAll('.delete-node').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    const id = parseInt(btn.getAttribute('data-id'));
-                    await deleteNodeById(id);
-                    nodes = nodes.filter(n => n.id !== id);
-                    renderCanvas();
-                    setStatus('Nodo eliminado');
-                });
-            });
-        }
-
-        function getIcon(type) {
-            const map = { layout_block:'📐', note:'📝', prompt:'🎯', skill:'⚙️', module:'🧩' };
-            return map[type] || '📌';
-        }
-
-        function escapeHtml(str) {
-            if(!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if(m === '&') return '&amp;';
-                if(m === '<') return '&lt;';
-                if(m === '>') return '&gt;';
-                return m;
-            });
-        }
-
-        async function editNodeModal(node) {
-            const newTitle = prompt('Editar título:', node.title);
-            if (newTitle === null) return;
-            const newContent = prompt('Editar contenido:', node.content);
-            if (newContent === null) return;
-            node.title = newTitle;
-            node.content = newContent;
-            await saveNode(node);
-            // actualizar array local
-            const idx = nodes.findIndex(n => n.id === node.id);
-            if (idx !== -1) nodes[idx] = node;
-            renderCanvas();
-            setStatus('Nodo actualizado');
-        }
-
-        async function addNode(type) {
-            if (!currentProjectId) return;
-            const newNode = {
-                projectId: currentProjectId,
-                type: type,
-                x: 50 + Math.random() * 300,
-                y: 50 + Math.random() * 300,
-                title: `Nuevo ${type}`,
-                content: 'Edita este contenido...'
-            };
-            const tx = db.transaction('nodes', 'readwrite');
-            const store = tx.objectStore('nodes');
-            const req = store.add(newNode);
-            req.onsuccess = async function() {
-                newNode.id = req.result;
-                nodes.push(newNode);
-                renderCanvas();
-                setStatus(`Nodo ${type} añadido`);
-            };
-        }
-
-        // Manejo de arrastre global
-        document.addEventListener('mousemove', (e) => {
-            if (!dragEnabled || !draggingNode) return;
-            const dx = e.clientX - dragStartX;
-            const dy = e.clientY - dragStartY;
-            const newLeft = nodeStartLeft + dx;
-            const newTop = nodeStartTop + dy;
-            draggingNode.style.left = newLeft + 'px';
-            draggingNode.style.top = newTop + 'px';
-        });
-        document.addEventListener('mouseup', async (e) => {
-            if (!dragEnabled || !draggingNode) return;
-            const id = parseInt(draggingNode.getAttribute('data-id'));
-            const node = nodes.find(n => n.id === id);
-            if (node) {
-                node.x = parseInt(draggingNode.style.left);
-                node.y = parseInt(draggingNode.style.top);
-                await saveNode(node);
-            }
-            draggingNode.style.cursor = '';
-            draggingNode.classList.remove('dragging');
-            dragEnabled = false;
-            draggingNode = null;
-            setStatus('Posición guardada');
-        });
-
-        // ---------- Proyectos ----------
-        async function loadProjectList() {
-            const projects = await getAllProjects();
-            projectSelect.innerHTML = '';
-            for (const p of projects) {
-                const opt = document.createElement('option');
-                opt.value = p.id;
-                opt.textContent = p.name;
-                projectSelect.appendChild(opt);
-            }
-            if (projects.length === 0) {
-                // crear demo
-                const demoId = await addProject({ name: 'Demo: Landing AI', updatedAt: new Date().toISOString() });
-                await createDemoNodes(demoId);
-                currentProjectId = demoId;
-                await loadNodes(demoId);
-            } else {
-                currentProjectId = projects[0].id;
-                await loadNodes(currentProjectId);
-                const proj = await getProject(currentProjectId);
-                if (proj && proj.imageBase64) {
-                    currentImageBase64 = proj.imageBase64;
-                    showImagePreview(currentImageBase64);
-                }
-            }
-            projectSelect.value = currentProjectId;
-        }
-
-        async function createDemoNodes(projId) {
-            const demoNodes = [
-                { projectId: projId, type:'layout_block', x:60, y:60, title:'Navbar', content:'Logo + enlaces principales' },
-                { projectId: projId, type:'layout_block', x:60, y:220, title:'Hero', content:'Título, subtítulo, botón CTA' },
-                { projectId: projId, type:'layout_block', x:60, y:380, title:'Features Grid', content:'3 columnas con íconos' },
-                { projectId: projId, type:'note', x:400, y:80, title:'Nota de diseño', content:'Paleta: azul oscuro + grises claros, tipografía Inter' },
-                { projectId: projId, type:'prompt', x:400, y:240, title:'Prompt IA', content:'Generar landing page moderna, animaciones suaves, formulario de contacto.' },
-                { projectId: projId, type:'skill', x:400, y:400, title:'Skill Responsive', content:'Mobile-first, breakpoints 640px, 1024px.' }
+    // Cargar desde localStorage si existe
+    function loadFromStorage() {
+        const saved = localStorage.getItem('wireframe_elements');
+        if (saved) {
+            elements = JSON.parse(saved);
+            renderAll();
+        } else {
+            // Ejemplo inicial: un chat simple
+            elements = [
+                { id: '1', type: 'header', x: 20, y: 20, w: 400, h: 40, text: 'Chat App', bgColor: '#1e293b', textColor: 'white' },
+                { id: '2', type: 'chat-area', x: 20, y: 80, w: 400, h: 300, text: 'Mensajes: aquí aparecerán los mensajes', bgColor: '#f1f5f9' },
+                { id: '3', type: 'input', x: 20, y: 400, w: 300, h: 36, text: 'Escribe un mensaje...', bgColor: 'white' },
+                { id: '4', type: 'button', x: 330, y: 400, w: 90, h: 36, text: 'Enviar', bgColor: '#3b82f6', textColor: 'white' },
+                { id: '5', type: 'notification', x: 430, y: 20, w: 80, h: 40, text: '🔔 3', bgColor: '#ef4444', textColor: 'white' }
             ];
-            for (const nd of demoNodes) {
-                const tx = db.transaction('nodes', 'readwrite');
-                const store = tx.objectStore('nodes');
-                store.add(nd);
+            renderAll();
+        }
+    }
+
+    function saveToStorage() {
+        localStorage.setItem('wireframe_elements', JSON.stringify(elements));
+    }
+
+    // Renderizar todos los elementos en el lienzo
+    function renderAll() {
+        wireframe.innerHTML = '';
+        for (let el of elements) {
+            const div = document.createElement('div');
+            div.className = 'wf-element';
+            if (selectedId === el.id) div.classList.add('selected');
+            div.style.left = el.x + 'px';
+            div.style.top = el.y + 'px';
+            div.style.width = el.w + 'px';
+            div.style.height = el.h + 'px';
+            if (el.bgColor) div.style.backgroundColor = el.bgColor;
+            else div.style.backgroundColor = 'rgba(255,255,255,0.9)';
+            div.setAttribute('data-id', el.id);
+            // Cabecera
+            const header = document.createElement('div');
+            header.className = 'element-header';
+            header.innerHTML = `<span>${getIcon(el.type)} ${el.type}</span><span style="font-size:9px">⋮⋮</span>`;
+            // Contenido
+            const content = document.createElement('div');
+            content.className = 'element-content';
+            content.innerText = el.text || (el.type === 'image' ? '[img]' : '');
+            // Handle resize
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            // Eventos de arrastre (cabecera)
+            header.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                startDragElement(el.id, e);
+            });
+            // Doble click para editar texto
+            content.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                editElementText(el.id);
+            });
+            // Click para seleccionar
+            div.addEventListener('click', (e) => {
+                e.stopPropagation();
+                selectElement(el.id);
+            });
+            // Redimensionar
+            resizeHandle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                startResize(el.id, e);
+            });
+            div.appendChild(header);
+            div.appendChild(content);
+            div.appendChild(resizeHandle);
+            wireframe.appendChild(div);
+        }
+        updateInspector();
+    }
+
+    function getIcon(type) {
+        const icons = {
+            box: '📦', button: '🔘', 'chat-area': '💬', input: '✏️', image: '🖼️',
+            notification: '🔔', card: '🃏', header: '📌', footer: '📄'
+        };
+        return icons[type] || '🧩';
+    }
+
+    function selectElement(id) {
+        selectedId = id;
+        renderAll();
+    }
+
+    function editElementText(id) {
+        const el = elements.find(e => e.id === id);
+        if (el) {
+            const newText = prompt('Editar texto / contenido:', el.text || '');
+            if (newText !== null) {
+                el.text = newText;
+                saveToStorage();
+                renderAll();
             }
         }
+    }
 
-        async function loadNodes(projectId) {
-            nodes = await getNodesByProject(projectId);
-            renderCanvas();
+    function startDragElement(id, e) {
+        const el = elements.find(e => e.id === id);
+        if (!el) return;
+        dragTarget = el;
+        dragOffsetX = e.clientX - el.x;
+        dragOffsetY = e.clientY - el.y;
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        e.preventDefault();
+    }
+
+    function onMouseMove(e) {
+        if (dragTarget) {
+            let newX = e.clientX - dragOffsetX;
+            let newY = e.clientY - dragOffsetY;
+            // límites dentro del lienzo (márgenes)
+            newX = Math.max(0, Math.min(newX, wireframe.clientWidth - dragTarget.w));
+            newY = Math.max(0, Math.min(newY, wireframe.clientHeight - dragTarget.h));
+            dragTarget.x = newX;
+            dragTarget.y = newY;
+            saveToStorage();
+            renderAll();
+        } else if (resizeTarget) {
+            const dx = e.clientX - startMouseX;
+            const dy = e.clientY - startMouseY;
+            let newW = Math.max(40, startW + dx);
+            let newH = Math.max(30, startH + dy);
+            resizeTarget.w = newW;
+            resizeTarget.h = newH;
+            saveToStorage();
+            renderAll();
         }
+    }
 
-        async function switchProject() {
-            const newId = parseInt(projectSelect.value);
-            if (newId === currentProjectId) return;
-            currentProjectId = newId;
-            await loadNodes(currentProjectId);
-            const proj = await getProject(currentProjectId);
-            if (proj && proj.imageBase64) {
-                currentImageBase64 = proj.imageBase64;
-                showImagePreview(currentImageBase64);
-            } else {
-                currentImageBase64 = null;
-                imagePreviewDiv.innerHTML = '';
-            }
-            setStatus(`Proyecto cambiado a ${proj.name}`);
+    function onMouseUp() {
+        dragTarget = null;
+        resizeTarget = null;
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+    }
+
+    function startResize(id, e) {
+        const el = elements.find(e => e.id === id);
+        if (!el) return;
+        resizeTarget = el;
+        startMouseX = e.clientX;
+        startMouseY = e.clientY;
+        startW = el.w;
+        startH = el.h;
+        startX = el.x;
+        startY = el.y;
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        e.preventDefault();
+    }
+
+    function updateInspector() {
+        if (!selectedId) {
+            elementPropsDiv.style.display = 'none';
+            noSelectionMsg.style.display = 'block';
+            return;
         }
+        const el = elements.find(e => e.id === selectedId);
+        if (!el) return;
+        elementPropsDiv.style.display = 'block';
+        noSelectionMsg.style.display = 'none';
+        propType.value = el.type;
+        propText.value = el.text || '';
+        propBgColor.value = el.bgColor || '#ffffff';
+    }
 
-        async function newProject() {
-            const name = prompt('Nombre del nuevo proyecto:');
-            if (!name) return;
-            const newId = await addProject({ name, updatedAt: new Date().toISOString() });
-            currentProjectId = newId;
-            nodes = [];
-            renderCanvas();
-            currentImageBase64 = null;
-            imagePreviewDiv.innerHTML = '';
-            await loadProjectList();
-            projectSelect.value = newId;
-            setStatus(`Proyecto "${name}" creado`);
+    updatePropsBtn.addEventListener('click', () => {
+        if (!selectedId) return;
+        const el = elements.find(e => e.id === selectedId);
+        if (el) {
+            el.text = propText.value;
+            el.bgColor = propBgColor.value;
+            saveToStorage();
+            renderAll();
         }
+    });
 
-        // Imagen referencia
-        function showImagePreview(b64) {
-            if (b64) {
-                imagePreviewDiv.innerHTML = `<img src="${b64}" alt="referencia">`;
-            } else {
-                imagePreviewDiv.innerHTML = '';
-            }
-        }
+    // Añadir nuevo elemento desde paleta (drag & drop visual)
+    function addNewElement(type, clientX, clientY) {
+        const rect = wireframe.getBoundingClientRect();
+        let x = clientX - rect.left - 40;
+        let y = clientY - rect.top - 20;
+        x = Math.max(10, Math.min(x, wireframe.clientWidth - 100));
+        y = Math.max(10, Math.min(y, wireframe.clientHeight - 60));
+        const newId = Date.now() + '-' + Math.random();
+        let defaultText = '';
+        if (type === 'button') defaultText = 'Botón';
+        else if (type === 'input') defaultText = 'Escribe aquí...';
+        else if (type === 'chat-area') defaultText = 'Historial de mensajes';
+        else if (type === 'notification') defaultText = '🔔 Notificación';
+        else if (type === 'card') defaultText = 'Tarjeta de contenido';
+        else defaultText = type;
+        const newElement = {
+            id: newId,
+            type: type,
+            x: x, y: y,
+            w: type === 'chat-area' ? 300 : 140,
+            h: type === 'chat-area' ? 200 : 80,
+            text: defaultText,
+            bgColor: '#ffffff'
+        };
+        elements.push(newElement);
+        saveToStorage();
+        renderAll();
+        selectElement(newId);
+    }
 
-        imageUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async (ev) => {
-                currentImageBase64 = ev.target.result;
-                showImagePreview(currentImageBase64);
-                if (currentProjectId) {
-                    await updateProject(currentProjectId, { imageBase64: currentImageBase64 });
-                }
-                setStatus('Imagen guardada');
-            };
-            reader.readAsDataURL(file);
+    // Drag from palette
+    paletteItems.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+            const type = item.getAttribute('data-type');
+            e.dataTransfer.setData('text/plain', type);
+            e.dataTransfer.effectAllowed = 'copy';
         });
-
-        // Generar prompt
-        function generatePrompt() {
-            const layoutBlocks = nodes.filter(n => n.type === 'layout_block').map(n => `- ${n.title}: ${n.content}`).join('\n');
-            const notes = nodes.filter(n => n.type === 'note').map(n => `📝 ${n.title}\n${n.content}`).join('\n\n');
-            const prompts = nodes.filter(n => n.type === 'prompt').map(n => `🎯 ${n.title}\n${n.content}`).join('\n\n');
-            const skills = nodes.filter(n => n.type === 'skill').map(n => `⚙️ ${n.title}\n${n.content}`).join('\n');
-            let imgSection = '';
-            if (currentImageBase64) {
-                imgSection = `\n\n[IMAGEN DE REFERENCIA]: ${currentImageBase64.substring(0, 80)}... (usa esta imagen como guía visual)`;
-            }
-            const finalPrompt = `# VISUAL CONTEXT FOR AI
-
-## ESTRUCTURA VISUAL
-${layoutBlocks || 'Sin bloques'}
-
-## NOTAS DE DISEÑO
-${notes || 'Ninguna'}
-
-## PROMPTS
-${prompts || 'Ninguno'}
-
-## SKILLS TÉCNICAS
-${skills || 'No especificadas'}
-${imgSection}
-
----
-INSTRUCCIÓN: Genera código HTML/CSS moderno, responsivo, respetando la estructura visual y skills.`;
-            promptOutput.textContent = finalPrompt;
-            return finalPrompt;
+    });
+    wireframe.addEventListener('dragover', (e) => e.preventDefault());
+    wireframe.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('text/plain');
+        if (type) {
+            addNewElement(type, e.clientX, e.clientY);
         }
+    });
 
-        async function copyPromptToClipboard() {
-            const text = generatePrompt();
-            try {
-                await navigator.clipboard.writeText(text);
-                setStatus('✅ Prompt copiado');
-            } catch(err) {
-                setStatus('❌ Error al copiar', true);
-            }
-        }
+    // También permitir click en paleta: añadir en centro aprox
+    paletteItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            const type = item.getAttribute('data-type');
+            const centerX = wireframe.clientWidth / 2;
+            const centerY = wireframe.clientHeight / 2;
+            addNewElement(type, wireframe.getBoundingClientRect().left + centerX, wireframe.getBoundingClientRect().top + centerY);
+        });
+    });
 
-        // Inicialización
-        async function init() {
-            try {
-                await openDB();
-                await loadProjectList();
-                // Eventos UI
-                document.querySelectorAll('.add-node-btn').forEach(btn => {
-                    btn.addEventListener('click', () => addNode(btn.getAttribute('data-type')));
-                });
-                newProjectBtn.addEventListener('click', newProject);
-                generateBtn.addEventListener('click', generatePrompt);
-                copyBtn.addEventListener('click', copyPromptToClipboard);
-                projectSelect.addEventListener('change', switchProject);
-                setStatus('Aplicación lista');
-            } catch(err) {
-                console.error(err);
-                setStatus('Error al iniciar: ' + err.message, true);
-                document.body.innerHTML = `<div style="padding:20px;color:red;">Error crítico: ${err.message}<br>Intente recargar o usar otro navegador.</div>`;
-            }
+    // Generar prompt estructurado para IA
+    function generateStructuredPrompt() {
+        let elementsDesc = elements.map(el => {
+            return `- ${el.type} (id: ${el.id}): posición (${el.x}, ${el.y}), tamaño ${el.w}×${el.h}, texto: "${el.text || ''}" ${el.bgColor ? `, fondo: ${el.bgColor}` : ''}`;
+        }).join('\n');
+        let totalWidth = wireframe.clientWidth;
+        let totalHeight = wireframe.clientHeight;
+        let prompt = `# INSTRUCCIÓN: Genera una página web (HTML/CSS) que replique exactamente este diseño visual.
+
+## Dimensiones del lienzo: ${totalWidth}px × ${totalHeight}px (área de trabajo)
+
+## Lista de elementos visuales (wireframe):
+${elementsDesc}
+
+## REQUISITOS ADICIONALES:
+- Cada elemento debe tener la posición absoluta (left/top) y tamaño (width/height) especificados.
+- El contenedor principal debe ser position: relative con el mismo ancho/alto.
+- Respeta los textos y colores de fondo indicados.
+- Añade estilos visuales coherentes (bordes, sombras, tipografía legible).
+- El resultado debe ser responsivo mínimo (escala dentro de un contenedor).
+- Genera código HTML y CSS completo dentro de un solo archivo.
+
+## EJEMPLO DE ESTRUCTURA ESPERADA:
+<div style="position:relative; width:${totalWidth}px; height:${totalHeight}px; background:#f0f0f0;">
+   <!-- elementos con position:absolute, left, top, width, height -->
+</div>`;
+        return prompt;
+    }
+
+    generateBtn.addEventListener('click', () => {
+        const prompt = generateStructuredPrompt();
+        promptArea.textContent = prompt;
+    });
+
+    copyBtn.addEventListener('click', async () => {
+        const prompt = promptArea.textContent;
+        if (prompt && prompt !== 'Aún no generado...') {
+            await navigator.clipboard.writeText(prompt);
+            alert('✅ Prompt copiado al portapapeles');
+        } else {
+            generateBtn.click();
+            setTimeout(async () => {
+                const newPrompt = promptArea.textContent;
+                await navigator.clipboard.writeText(newPrompt);
+                alert('✅ Prompt generado y copiado');
+            }, 50);
         }
-        init();
-    })();
+    });
+
+    clearBtn.addEventListener('click', () => {
+        if (confirm('¿Borrar todos los elementos del lienzo?')) {
+            elements = [];
+            selectedId = null;
+            saveToStorage();
+            renderAll();
+        }
+    });
+
+    // Inicialización
+    loadFromStorage();
+    // Ajustar tamaño del wireframe al contenedor (opcional)
+    function adjustWireframeSize() {
+        const container = document.querySelector('.canvas-container');
+        const maxW = container.clientWidth - 40;
+        const maxH = container.clientHeight - 40;
+        wireframe.style.width = Math.max(800, maxW) + 'px';
+        wireframe.style.height = Math.max(600, maxH) + 'px';
+    }
+    window.addEventListener('resize', adjustWireframeSize);
+    adjustWireframeSize();
 </script>
 </body>
-</html>
+    </html>
